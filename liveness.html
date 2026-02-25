@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS Face Liveness POC</title>
+    <!-- Use CDNs for React and Amplify (Note: FaceLivenessDetector works best in a bundled React app) -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    
+    <!-- Amplify and Amplify UI (For a real POC, hosting a small Vite/React app is recommended) -->
+    <link rel="stylesheet" href="https://unpkg.com/@aws-amplify/ui-react/styles.css" />
+    <style>
+        body, html, #root {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #000;
+        }
+        .container {
+            width: 100%;
+            max-width: 500px;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // In a real scenario, you'd use npm packages. This is a simplified POC representation.
+        // Note: FaceLivenessDetector is complex. If this CDN approach fails due to dependencies,
+        // please build a simple React app using: npx create-react-app liveness-app
+        
+        // Mocking the detection for the sake of the HTML structure if CDN isn't available
+        // In reality, you'll use: import { FaceLivenessDetector } from '@aws-amplify/ui-react-liveness';
+        
+        const { useState, useEffect } = React;
+
+        const LivenessDetectorApp = () => {
+            const [sessionId, setSessionId] = useState(null);
+            const [region, setRegion] = useState('us-east-1');
+
+            useEffect(() => {
+                const params = new URLSearchParams(window.location.search);
+                setSessionId(params.get('sessionId'));
+                setRegion(params.get('region') || 'us-east-1');
+            }, []);
+
+            const handleAnalysisComplete = async () => {
+                window.ReactNativeWebView.postMessage(JSON.stringify({
+                    status: 'SUCCESS',
+                    message: 'Liveness analysis complete'
+                }));
+            };
+
+            const handleError = (error) => {
+                window.ReactNativeWebView.postMessage(JSON.stringify({
+                    status: 'ERROR',
+                    error: error.message || 'Liveness check failed'
+                }));
+            };
+
+            if (!sessionId) {
+                return <div style={{color: 'white'}}>Loading session...</div>;
+            }
+
+            // This is where you would place the <FaceLivenessDetector /> component
+            // from @aws-amplify/ui-react-liveness. 
+            // For the POC to work, host a small React app with that component.
+            return (
+                <div className="container">
+                    <h2 style={{color: 'white', textAlign: 'center'}}>AWS Face Liveness Component</h2>
+                    <p style={{color: 'gray', textAlign: 'center'}}>Session ID: {sessionId}</p>
+                    
+                    {/* 
+                      UNCOMMENT THIS BLOCK in your bundled React app:
+                      <FaceLivenessDetector
+                        sessionId={sessionId}
+                        region={region}
+                        onAnalysisComplete={handleAnalysisComplete}
+                        onError={handleError}
+                      />
+                    */}
+                    
+                    <button 
+                        onClick={handleAnalysisComplete}
+                        style={{marginTop: 20, padding: 10, width: '100%'}}
+                    >
+                        Simulate Success (POC)
+                    </button>
+                    <button 
+                        onClick={() => handleError({message: 'User cancelled'})}
+                        style={{marginTop: 10, padding: 10, width: '100%', background: '#ff4444', color: 'white'}}
+                    >
+                        Simulate Error (POC)
+                    </button>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<LivenessDetectorApp />);
+    </script>
+</body>
+</html>
